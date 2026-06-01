@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>快照压缩审查</title>
+<style>
+:root {
+  --bg: #f5f5f5;
+  --card: #fff;
+  --text: #333;
+  --muted: #888;
+  --border: #e0e0e0;
+  --accent: #4a90d9;
+  --danger: #e74c3c;
+  --global: #27ae60;
+  --shadow: 0 1px 3px rgba(0,0,0,.1);
+  --radius: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding-bottom: 80px;
+}
+
+.header {
+  background: var(--card);
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+.header h1 { font-size: 18px; margin-bottom: 4px; }
+.header .meta { font-size: 13px; color: var(--muted); }
+
+.container {
+  max-width: 900px;
+  margin: 16px auto;
+  padding: 0 16px;
+}
+
+.section {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.section-header:hover { background: #fafafa; }
+.section-header .icon { margin-right: 8px; font-size: 16px; }
+.section-header .title { font-size: 15px; font-weight: 600; flex: 1; }
+.section-header .count { font-size: 13px; color: var(--muted); }
+.section-header .arrow { font-size: 12px; color: var(--muted); transition: transform .2s; }
+.section.collapsed .section-header .arrow { transform: rotate(-90deg); }
+.section.collapsed .section-body { display: none; }
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background .15s;
+}
+.item:last-child { border-bottom: none; }
+.item:hover { background: #fafafa; }
+
+.item.deleted {
+  opacity: .45;
+}
+.item.deleted .item-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.item.global {
+  border-left: 3px solid var(--global);
+}
+.item.global .badge-global {
+  display: inline;
+}
+
+.item-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  color: var(--text);
+}
+.btn:hover { border-color: #bbb; }
+.btn:active { background: #eee; }
+
+.btn-del { color: var(--danger); border-color: var(--danger); }
+.btn-del.active { background: var(--danger); color: #fff; }
+
+.btn-glob { color: var(--global); border-color: var(--global); }
+.btn-glob.active { background: var(--global); color: #fff; }
+.btn-glob.disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
+
+.badge-global {
+  display: none;
+  font-size: 10px;
+  background: var(--global);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  box-shadow: 0 -1px 3px rgba(0,0,0,.08);
+  z-index: 10;
+}
+.btn-save, .btn-cancel {
+  padding: 8px 32px;
+  font-size: 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: none;
+}
+.btn-save { background: var(--accent); color: #fff; }
+.btn-save:hover { background: #3a7bc8; }
+.btn-cancel { background: #eee; color: var(--text); }
+.btn-cancel:hover { background: #ddd; }
+
+.toast { display: none; }
+
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.5); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal-box {
+  background: #fff; border-radius: 8px; padding: 40px 48px;
+  max-width: 460px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+.modal-box p { font-size: 17px; font-weight: 600; margin-bottom: 24px; color: #222; line-height: 1.8; }
+.modal-box .modal-hint { font-size: 14px; font-weight: 400; color: var(--muted); margin: -8px 0 16px 0; }
+
+.modal-actions { display: flex; gap: 10px; justify-content: center; }
+.modal-actions button {
+  padding: 8px 28px; font-size: 14px; border-radius: var(--radius); cursor: pointer; border: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3a7bc8; }
+.btn-secondary { background: #eee; color: var(--text); }
+.btn-secondary:hover { background: #ddd; }
+
+.dim-summary { padding: 8px 16px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 快照压缩审查</h1>
+  <div class="meta" id="meta-info"></div>
+</div>
+
+<div class="container" id="sections"></div>
+
+<div class="bar">
+  <button class="btn-save" onclick="save()">保存</button>
+  <button class="btn-cancel" onclick="cancel()">取消</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal-box">
+    <p id="modal-msg"></p>
+    <p class="modal-hint" id="modal-hint"></p>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<script id="review-data" type="application/json">__REVIEW_DATA__</script>
+
+<script>
+const data = JSON.parse(document.getElementById('review-data').textContent);
+
+const dimIcons = { '设计意图': '🧭', '已否决方案': '🚫', '已知坑位': '⚠️', '当前断点': '📍', '方向约束': '🧱' };
+const dimHasGlobal = { '设计意图': true, '已否决方案': true, '已知坑位': true, '当前断点': false, '方向约束': true };
+
+document.getElementById('meta-info').textContent =
+  '来源：' + data.source_files.length + ' 条快照';
+
+function render() {
+  const container = document.getElementById('sections');
+  container.innerHTML = '';
+
+  for (const [dim, items] of Object.entries(data.dimensions)) {
+    if (!items || items.length === 0) continue;
+    const activeItems = items.filter(i => !i.deleted);
+    const globalItems = items.filter(i => i.global && !i.deleted);
+
+    const section = document.createElement('div');
+    section.className = 'section';
+    section.innerHTML = `
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span class="icon">${dimIcons[dim] || '📌'}</span>
+        <span class="title">${dim}</span>
+        <span class="count">${activeItems.length} / ${items.length} 条</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="dim-summary">${dimHasGlobal[dim] ? '已标记全局 ' + globalItems.length + ' 条 | ' : ''}已删除 ${items.filter(i => i.deleted).length} 条</div>
+      <div class="section-body" id="dim-${dim}"></div>
+    `;
+    container.appendChild(section);
+
+    const body = section.querySelector('.section-body');
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      if (item.deleted) row.classList.add('deleted');
+      if (item.global && !item.deleted) row.classList.add('global');
+
+      row.innerHTML = `
+        <span class="item-text">${escapeHtml(item.text)}<span class="badge-global">全局</span></span>
+        <div class="item-actions">
+          <button class="btn btn-del ${item.deleted ? 'active' : ''}" data-action="del">${item.deleted ? '恢复' : '删除'}</button>
+          <button class="btn btn-glob ${item.global ? 'active' : ''} ${!dimHasGlobal[dim] || item.deleted ? 'disabled' : ''}" data-action="glob">${item.global ? '局部' : '全局'}</button>
+        </div>
+      `;
+
+      const delBtn = row.querySelector('[data-action="del"]');
+      delBtn.addEventListener('click', () => {
+        item.deleted = !item.deleted;
+        if (item.deleted) item.global = false;
+        rerenderSection(dim);
+      });
+
+      const globBtn = row.querySelector('[data-action="glob"]');
+      if (dimHasGlobal[dim]) {
+        globBtn.addEventListener('click', () => {
+          item.global = !item.global;
+          rerenderSection(dim);
+        });
+      }
+
+      body.appendChild(row);
+    });
+  }
+}
+
+function rerenderSection(dim) {
+  const oldSection = document.getElementById('dim-' + dim).parentElement.parentElement;
+  const wasCollapsed = oldSection.classList.contains('collapsed');
+  render();
+  if (wasCollapsed) {
+    const newSection = document.getElementById('dim-' + dim);
+    if (newSection) newSection.parentElement.parentElement.classList.add('collapsed');
+  }
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function collect() {
+  const result = { dimensions: {} };
+  for (const dim of Object.keys(data.dimensions)) {
+    result.dimensions[dim] = data.dimensions[dim].map(i => ({
+      id: i.id, text: i.text, deleted: i.deleted, global: i.global
+    }));
+  }
+  return result;
+}
+
+let saveLocked = false;
+
+function showModal(msg, btn1Text, btn1Fn, btn2Text, btn2Fn) {
+  document.getElementById('modal-msg').innerHTML = msg;
+  document.getElementById('modal-hint').textContent = '';
+  const actions = document.getElementById('modal-actions');
+  actions.innerHTML = '';
+  if (btn1Text && btn1Fn) {
+    const b1 = document.createElement('button');
+    b1.className = 'btn-primary';
+    b1.textContent = btn1Text;
+    b1.onclick = btn1Fn;
+    actions.appendChild(b1);
+  }
+  if (btn2Text && btn2Fn) {
+    const b2 = document.createElement('button');
+    b2.className = 'btn-secondary';
+    b2.textContent = btn2Text;
+    b2.onclick = btn2Fn;
+    actions.appendChild(b2);
+  }
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function hideModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function save() {
+  if (saveLocked) return;
+  showModal('确认保存？<br><span style="color:#e74c3c">保存后无法撤销</span>', '确认保存', executeSave, '取消', hideModal);
+}
+
+async function executeSave() {
+  saveLocked = true;
+  hideModal();
+  showModal('正在保存...', null, null);
+  try {
+    const resp = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(collect())
+    });
+    if (resp.ok) {
+      document.getElementById('modal-msg').innerHTML = '保存成功！';
+      document.getElementById('modal-hint').innerHTML = '<span style="color:#e74c3c;font-weight:600;">请关闭页面，回到终端继续操作。</span>';
+      document.getElementById('modal-actions').innerHTML = '';
+    } else {
+      showModal('保存失败，请重试', '重试', executeSave, '关闭', hideModal);
+      saveLocked = false;
+    }
+  } catch (e) {
+    showModal('无法连接到服务器，请确认 server.py 正在运行', '重试', executeSave, '关闭', hideModal);
+    saveLocked = false;
+  }
+}
+
+function cancel() {
+  showModal('确认取消？<br>所有修改将不会保存。', '确认取消', () => {
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#888;font-size:16px;">审查已取消，请关闭此页面。</div>';
+  }, '返回', hideModal);
+}
+
+render();
+</script>
+</body>
+</html>

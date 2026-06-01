@@ -1,0 +1,10 @@
+# 运行时快照目录（每个用户本地生成，不提交）
+.cortex/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 运行时临时文件
+cortex-index/scripts/review_data.json
+cortex-index/scripts/save_result.json
