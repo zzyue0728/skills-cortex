@@ -371,9 +371,16 @@ async function executeSave() {
 }
 
 function cancel() {
-  showModal('确认取消？<br>所有修改将不会保存。', '确认取消', () => {
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#888;font-size:16px;">审查已取消，请关闭此页面。</div>';
-  }, '返回', hideModal);
+  showModal('确认取消？<br>所有修改将不会保存。', '确认取消', cancelAndShutdown, '返回', hideModal);
+}
+
+async function cancelAndShutdown() {
+  hideModal();
+  try {
+    await fetch('/shutdown', { method: 'POST' });
+  } catch (e) {
+  }
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#888;font-size:16px;">审查已取消，请关闭此页面。</div>';
 }
 
 render();

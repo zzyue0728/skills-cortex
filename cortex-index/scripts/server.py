@@ -63,8 +63,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps({'status': 'ok'}).encode())
-            # 保存成功后延迟关闭，给浏览器足够时间接收响应
-            do_shutdown(httpd)
+            do_shutdown(self.server)
         except Exception as e:
             self.send_response(500)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -72,24 +71,26 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'status': 'error', 'message': str(e)}).encode())
 
     def _handle_shutdown(self):
-        """优雅关闭端点 — 用于用户取消审查时手动停止服务器"""
         self.send_response(200)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.end_headers()
         self.wfile.write(json.dumps({'status': 'shutting_down'}).encode())
-        do_shutdown(httpd)
+        do_shutdown(self.server)
 
     def log_message(self, format, *args):
         pass  # 静默 HTTP 日志
 
-# 查找可用端口，从默认 18888 开始
+# 查找可用端口，从默认 18888 开始（最多尝试 100 个）
 PORT = 18888
-while True:
+MAX_PORT = PORT + 100
+while PORT < MAX_PORT:
     try:
         httpd = http.server.HTTPServer(('127.0.0.1', PORT), Handler)
         break
     except OSError:
         PORT += 1
+else:
+    raise RuntimeError(f'无法在 {PORT - 100}-{MAX_PORT} 范围内找到可用端口')
 
 # 写入 PID 和端口文件
 with open(PID_FILE, 'w') as f:

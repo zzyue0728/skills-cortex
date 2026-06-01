@@ -39,7 +39,13 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 - 去重合并（语义相同保留最详细版本），新建条目赋予唯一 id
 
 **已知坑位**：
-- 去重合并，检查后续快照中是否已修复 → 初步排除已修复的坑位
+- 去重合并（语义相同保留最详细版本），新建条目赋予唯一 id
+- 标记"已修复"：对每条坑位，按顺序检查以下条件，符合任一即视为已修复：
+  1. 后续快照的"已知坑位"中出现该坑位 + "已解决/已修复/已绕过"等明确标记
+  2. 后续快照的"设计意图"中提到"改用 X 替代"或"采用新方案"，且 X 与该坑位的解法语义匹配
+  3. 后续快照的"当前断点"中提到"修复了 X"或"解决了 X"，且 X 包含该坑位
+- 已修复的坑位不进入压缩快照（保留在原快照文件中，不物理删除）
+- 未命中任何条件的坑位进入压缩快照
 
 **当前断点**：
 - 只取最新快照的内容
@@ -67,16 +73,22 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 
 所有命令使用 bash 语法，兼容 Windows Git Bash / Linux / macOS。
 
+0. 确保 `.cortex/collate/server.py` 已就位。初始化阶段（`cortex` 无参数）已自动拷贝，但若跳过初始化直接跑 `cortex -i`，需手动补上：
+   ```bash
+   test -f .cortex/collate/server.py || cp ../cortex-index/scripts/server.py .cortex/collate/server.py
+   ```
+   > 路径使用兄弟目录约定（`../cortex-index/scripts/`），假设当前在项目根目录。
+
 1. 在 `.cortex/collate/` 目录后台启动 server.py：
-```bash
-cd .cortex/collate && python server.py . &
-```
-服务器默认监听 `127.0.0.1:18888`，端口被占用时自动递增，实际 URL 输出到终端。
+   ```bash
+   cd .cortex/collate && python server.py . &
+   ```
+   服务器默认监听 `127.0.0.1:18888`，端口被占用时自动递增（最多尝试 100 个），实际 URL 输出到终端。
 
 2. 稍等 1 秒后，打开浏览器：
-```bash
-start http://127.0.0.1:18888
-```
+   ```bash
+   start http://127.0.0.1:18888
+   ```
 > Windows：`start` 在 Git Bash 中可用。Linux：替换为 `xdg-open`，macOS：替换为 `open`。
 
 3. 提示用户：
