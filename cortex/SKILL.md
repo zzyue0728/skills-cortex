@@ -1,6 +1,6 @@
 ---
 name: cortex
-description: cortex 技能体系主调度器。接收 -c -d -i -m 参数并分发到对应的子技能执行。无参数时初始化目录结构并输出技能教程
+description: cortex 技能体系主调度器。接收 -c -d -i -m -s 参数并分发到对应的子技能执行。无参数时初始化目录结构并输出技能教程
 ---
 
 # cortex — 主调度器
@@ -9,7 +9,7 @@ cortex 是项目上下文管理技能体系的统一入口。通过参数分发�
 
 ## 技能体系
 
-五个技能为同级目录，拷贝到任意 AI 编程终端的 skills 目录下即可使用。
+六个技能为同级目录，拷贝到任意 AI 编程终端的 skills 目录下即可使用。
 
 | 技能 | 目录 | 职责 |
 |------|------|------|
@@ -17,8 +17,9 @@ cortex 是项目上下文管理技能体系的统一入口。通过参数分发�
 | **cortex-docsync** | `cortex-docsync/` | 同步 docs 文档和 CORTEX.md 索引 |
 | **cortex-index** | `cortex-index/` | 审查并压缩快照 |
 | **cortex-memory** | `cortex-memory/` | 加载快照和 CORTEX.md 到上下文 |
+| **cortex-snapshot** | `cortex-snapshot/` | 分析快照条目，根据反馈执行修改 |
 
-> 所有路径引用均基于"五个技能目录互为兄弟目录"的约定。当前技能文件所在目录为 `cortex/`，兄弟目录通过 `../<skill-name>/` 访问。
+> 所有路径引用均基于"六个技能目录互为兄弟目录"的约定。当前技能文件所在目录为 `cortex/`，兄弟目录通过 `../<skill-name>/` 访问。
 
 ## 触发条件
 
@@ -32,6 +33,7 @@ cortex 是项目上下文管理技能体系的统一入口。通过参数分发�
 | `-d` | cortex-docsync | 同步 docs 文档 |
 | `-i` | cortex-index | 审查并压缩快照 |
 | `-m` | cortex-memory | 加载上下文 |
+| `-s` | cortex-snapshot | 分析压缩后的快照条目，根据反馈执行修改 |
 
 支持空格分隔组合，如 `cortex -c -d`。
 
@@ -41,22 +43,22 @@ cortex 是项目上下文管理技能体系的统一入口。通过参数分发�
 
 1. 收集所有参数中的标志（如 `-c`、`-d`、`-i`、`-m`）
 2. 去重：重复参数只执行一次
-3. 按固定顺序排列：`c → d → i → m`（无论用户输入顺序如何）
+3. 按固定顺序排列：`c → d → i → m → s`（无论用户输入顺序如何）
 4. 忽略非法参数并输出警告：
    ```
    ⚠️ 未知参数：-x，已忽略
-   只支持 -c、-d、-i、-m
+   只支持 -c、-d、-i、-m、-s
    ```
 5. 按排列后的顺序依次加载对应的子技能
 
-**执行顺序约定：** `-c → -d → -i → -m`
+**执行顺序约定：** `-c → -d → -i → -m → -s`
 
 示例：
 - `cortex -c` → 加载 cortex-context 技能
 - `cortex -d` → 加载 cortex-docsync 技能
 - `cortex -c -d` → 先加载 cortex-context，完成后加载 cortex-docsync
 - `cortex -d -c` → 同样先 c 后 d（按固定顺序，不按输入顺序）
-- `cortex -c -d -i -m` → 顺序执行全部四个技能
+- `cortex -c -d -i -m -s` → 顺序执行全部五个技能
 
 ## 无参数时
 
@@ -105,7 +107,8 @@ cortex 是项目上下文管理技能体系的统一入口。通过参数分发�
   cortex -d          同步 docs 文档
   cortex -i          审查并压缩快照
   cortex -m          加载上下文
-  支持组合：cortex -c -d -i（顺序固定 c→d→i→m）
+  cortex -s          分析压缩后的快照条目，根据反馈执行修改
+  支持组合：cortex -c -d -i（顺序固定 c→d→i→m→s）
 
 ▸ 技能说明
 
@@ -127,10 +130,15 @@ cortex 是项目上下文管理技能体系的统一入口。通过参数分发�
      让 AI 了解项目设计意图、历史决策、已知坑位和当前状态。
      在开始新会话或接手项目时使用。
 
+  5. cortex-snapshot（cortex -s）
+     读取压缩后的 active 快照，让用户选择参考源（docs/CORTEX.md/目录结构/自定义/读取整体项目），
+     逐条分析给出保留/删除/提全局的建议，审核反馈后执行修改。
+
 ▸ 推荐工作流
   开始工作 → cortex -m（加载项目上下文）
   完成阶段 → cortex -c（保存上下文快照）
   改动文档 → cortex -c -d（保存快照 + 同步文档）
   定期维护 → cortex -i（审查并压缩快照）
+  压缩之后 → cortex -s（分析压缩后的快照，决定条目去向）
   首次使用 → cortex（初始化目录结构）
 ```

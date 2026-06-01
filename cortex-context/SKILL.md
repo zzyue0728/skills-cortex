@@ -73,7 +73,7 @@ description: 从当前对话提取 5 维度上下文信息，推断项目层级�
 
 ### 第三步：写入快照文件
 
-1. 获取当前系统日期时间，生成文件名：`YYYY-MM-DD_HH-MM.md`
+1. 必须通过系统命令获取当前日期时间（例如 `Get-Date -Format "yyyy-MM-dd_HH-mm"`），**禁止凭上下文信息推测或编造**。生成文件名：`YYYY-MM-DD_HH-MM.md`
 2. 如果已存在同名文件，追加序号：`YYYY-MM-DD_HH-MM_2.md`
 3. 写入 `.cortex/` 目录
 
