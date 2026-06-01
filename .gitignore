@@ -5,6 +5,3 @@
 __pycache__/
 *.pyc
 
-# 运行时临时文件
-cortex-index/scripts/review_data.json
-cortex-index/scripts/save_result.json

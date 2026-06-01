@@ -1,0 +1,23 @@
+{
+  "source_files": ["<来源快照1>", "<来源快照2>"],
+  "dimensions": {
+    "设计意图": [
+      {"id": 1, "text": "示例：使用模块A而非模块B → 模块B不支持增量加载", "deleted": false, "global": false},
+      {"id": 2, "text": "示例：API 响应统一为 {code, data, message} 信封格式", "deleted": false, "global": false}
+    ],
+    "已否决方案": [
+      {"id": 1, "text": "示例：直接修改第三方库源码 → 建议通过插件机制扩展", "deleted": false, "global": false}
+    ],
+    "已知坑位": [
+      {"id": 1, "text": "示例：构建输出路径与源码结构不一致 → 使用 copy 插件同步配置", "deleted": false, "global": false}
+    ],
+    "当前断点": [
+      {"id": 1, "text": "示例：已完成\n阶段一核心功能\n阶段二用户管理", "deleted": false, "global": false},
+      {"id": 2, "text": "示例：未开始\n阶段三权限系统", "deleted": false, "global": false}
+    ],
+    "方向约束": [
+      {"id": 1, "text": "示例：仅支持 Windows 平台", "deleted": false, "global": false},
+      {"id": 2, "text": "示例：数据库使用 SQLite 单文件", "deleted": false, "global": false}
+    ]
+  }
+}
