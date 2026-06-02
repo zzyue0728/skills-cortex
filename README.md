@@ -83,13 +83,25 @@ skills/
          ~/.config/opencode/skills/
    ```
 
-   Windows PowerShell：
+   或 使用 Windows PowerShell：
    ```powershell
    Copy-Item -Recurse DevMemo-Skills\memo, DevMemo-Skills\memo-context, `
              DevMemo-Skills\memo-docsync, DevMemo-Skills\memo-index, `
              DevMemo-Skills\memo-memory, DevMemo-Skills\memo-snapshot `
              ~/.config/opencode/skills/
    ```
+
+   **opencode安装后**：
+
+   ![opencode](G:\pro_tool\DevMemo-Skills\opencode.png)
+
+   **claude安装后**：
+
+   ![claude](G:\pro_tool\DevMemo-Skills\claude.png)
+
+   **codex安装后**：
+
+   ![codex](G:\pro_tool\DevMemo-Skills\codex.png)
 
 3. 重启 AI 编程终端，技能即可加载。
 
