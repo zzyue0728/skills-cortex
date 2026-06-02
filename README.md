@@ -91,18 +91,6 @@ skills/
              ~/.config/opencode/skills/
    ```
 
-   **opencode安装后**：
-
-   ![opencode](.\opencode.png)
-
-   **claude安装后**：
-
-   ![claude](.\claude.png)
-
-   **codex安装后**：
-
-   ![codex](.\codex.png)
-
 3. 重启 AI 编程终端，技能即可加载。
 
 ## 快速开始
