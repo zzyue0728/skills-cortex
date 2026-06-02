@@ -93,15 +93,15 @@ skills/
 
    **opencode安装后**：
 
-   ![opencode](G:\pro_tool\DevMemo-Skills\opencode.png)
+   ![opencode](.\opencode.png)
 
    **claude安装后**：
 
-   ![claude](G:\pro_tool\DevMemo-Skills\claude.png)
+   ![claude](.\claude.png)
 
    **codex安装后**：
 
-   ![codex](G:\pro_tool\DevMemo-Skills\codex.png)
+   ![codex](.\codex.png)
 
 3. 重启 AI 编程终端，技能即可加载。
 
