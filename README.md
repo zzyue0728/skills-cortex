@@ -1,4 +1,4 @@
-# Cortex技能组 — 让 AI 编程终端记住你的项目
+# memo — 让 AI 编程终端记住你的项目
 
 项目上下文管理技能体系。解决跨会话的上下文丢失问题。
 
@@ -10,23 +10,23 @@
 
 ## 它是什么
 
-cortex 从对话中提取 5 维度结构化上下文（设计意图、已否决方案、已知坑位、当前断点、方向约束），保存为快照文件，并支持跨会话加载、压缩整理和文档同步。
+memo 从对话中提取 5 维度结构化上下文（设计意图、已否决方案、已知坑位、当前断点、方向约束），保存为快照文件，并支持跨会话加载、压缩整理和文档同步。
 
-由 6 个技能组成，通过 `cortex` 主调度器统一入口。**六个技能目录必须互为兄弟目录**，拷贝到 AI 编程终端的 skills 目录下即可使用。
+由 6 个技能组成，通过 `memo` 主调度器统一入口。**六个技能目录必须互为兄弟目录**，拷贝到 AI 编程终端的 skills 目录下即可使用。
 
 ## 技能架构
 
 ```
 skills/
-├── cortex/SKILL.md              主调度器，解析 -c -d -i -m -s 参数并分发
-├── cortex-context/SKILL.md      从对话提取 5 维度信息，保存快照到 .cortex/
-├── cortex-docsync/SKILL.md      同步 docs/ 文档与 CORTEX.md 索引
-├── cortex-index/SKILL.md        审查并压缩快照，全局条目写入 CORTEX.md
+├── memo/SKILL.md              主调度器，解析 -c -d -i -m -s 参数并分发
+├── memo-context/SKILL.md      从对话提取 5 维度信息，保存快照到 .memo/
+├── memo-docsync/SKILL.md      同步 docs/ 文档与 MEMO.md 索引
+├── memo-index/SKILL.md        审查并压缩快照，全局条目写入 MEMO.md
 │   └── scripts/
 │       ├── server.py            HTTP 服务器（提供审查页面 + 接收结果）
 │       └── review.html          审查页面（纯前端，逐条标记删除/全局）
-├── cortex-memory/SKILL.md       加载 .cortex/ 快照 + CORTEX.md 到上下文
-└── cortex-snapshot/SKILL.md     分析压缩后快照，根据用户反馈执行修改
+├── memo-memory/SKILL.md       加载 .memo/ 快照 + MEMO.md 到上下文
+└── memo-snapshot/SKILL.md     分析压缩后快照，根据用户反馈执行修改
 ```
 
 ## 5 维度上下文模型
@@ -42,15 +42,15 @@ skills/
 ## 数据流
 
 ```
-对话 → cortex-context → .cortex/YYYY-MM-DD_HH-MM.md（快照文件）
-                          └── .cortex/_index.md（索引表）
-                          └── CORTEX.md（全局条目 + 文档索引）
+对话 → memo-context → .memo/YYYY-MM-DD_HH-MM.md（快照文件）
+                          └── .memo/_index.md（索引表）
+                          └── MEMO.md（全局条目 + 文档索引）
 
-.cortex/ 快照 → cortex-index → 审查页面（浏览器）→ 压缩快照 + 全局条目写入 CORTEX.md
+.memo/ 快照 → memo-index → 审查页面（浏览器）→ 压缩快照 + 全局条目写入 MEMO.md
 
-压缩后快照 → cortex-snapshot → 分析条目 + 用户反馈 → 修改快照 / 提全局到 CORTEX.md
+压缩后快照 → memo-snapshot → 分析条目 + 用户反馈 → 修改快照 / 提全局到 MEMO.md
 
-.cortex/ 快照 + CORTEX.md → cortex-memory → 注入 AI 上下文
+.memo/ 快照 + MEMO.md → memo-memory → 注入 AI 上下文
 ```
 
 ## 安装
@@ -71,23 +71,23 @@ skills/
 
 1. 克隆本仓库到本地任意位置：
    ```bash
-   git clone https://github.com/zzyue0728/skills-cortex.git
+   git clone https://github.com/zzyue0728/DevMemo-Skills.git
    ```
-2. 将仓库内的六个目录（`cortex/`、`cortex-context/`、`cortex-docsync/`、`cortex-index/`、`cortex-memory/`、`cortex-snapshot/`）拷贝到目标 skills 目录下，**保持兄弟目录结构**。
+2. 将仓库内的六个目录（`memo/`、`memo-context/`、`memo-docsync/`、`memo-index/`、`memo-memory/`、`memo-snapshot/`）拷贝到目标 skills 目录下，**保持兄弟目录结构**。
 
    以 OpenCode 为例（Windows Git Bash / Linux / macOS）：
    ```bash
-   cp -r skills-cortex/cortex skills-cortex/cortex-context \
-         skills-cortex/cortex-docsync skills-cortex/cortex-index \
-         skills-cortex/cortex-memory skills-cortex/cortex-snapshot \
+   cp -r DevMemo-Skills/memo DevMemo-Skills/memo-context \
+         DevMemo-Skills/memo-docsync DevMemo-Skills/memo-index \
+         DevMemo-Skills/memo-memory DevMemo-Skills/memo-snapshot \
          ~/.config/opencode/skills/
    ```
 
    Windows PowerShell：
    ```powershell
-   Copy-Item -Recurse skills-cortex\cortex, skills-cortex\cortex-context, `
-             skills-cortex\cortex-docsync, skills-cortex\cortex-index, `
-             skills-cortex\cortex-memory, skills-cortex\cortex-snapshot `
+   Copy-Item -Recurse DevMemo-Skills\memo, DevMemo-Skills\memo-context, `
+             DevMemo-Skills\memo-docsync, DevMemo-Skills\memo-index, `
+             DevMemo-Skills\memo-memory, DevMemo-Skills\memo-snapshot `
              ~/.config/opencode/skills/
    ```
 
@@ -98,37 +98,37 @@ skills/
 在你的项目根目录执行：
 
 ```bash
-# 首次使用：初始化 .cortex/ 目录 + 输出教程
-cortex
+# 首次使用：初始化 .memo/ 目录 + 输出教程
+memo
 
 # 开始工作：加载项目上下文
-cortex -m
+memo -m
 
 # 完成一个阶段：保存上下文快照
-cortex -c
+memo -c
 
 # 改动文档后：保存快照 + 同步 docs
-cortex -c -d
+memo -c -d
 
 # 压缩之后：分析压缩后快照，决定条目去向
-cortex -s
+memo -s
 
 # 定期维护：审查并压缩快照（自动打开浏览器）
-cortex -i
+memo -i
 ```
 
 ## 用法
 
 | 命令 | 功能 |
 |------|------|
-| `cortex` | 初始化目录 + 输出教程 |
-| `cortex -c` | 保存上下文快照 |
-| `cortex -d` | 同步 docs 文档 |
-| `cortex -i` | 审查并压缩快照 |
-| `cortex -m` | 加载项目上下文 |
-| `cortex -s` | 分析压缩后快照，根据反馈执行修改 |
+| `memo` | 初始化目录 + 输出教程 |
+| `memo -c` | 保存上下文快照 |
+| `memo -d` | 同步 docs 文档 |
+| `memo -i` | 审查并压缩快照 |
+| `memo -m` | 加载项目上下文 |
+| `memo -s` | 分析压缩后快照，根据反馈执行修改 |
 
-支持组合：`cortex -c -d -i -m -s`，按固定顺序执行（`c → d → i → m → s`）。
+支持组合：`memo -c -d -i -m -s`，按固定顺序执行（`c → d → i → m → s`）。
 
 ## 兼容性
 
@@ -142,7 +142,7 @@ cortex -i
 python -m unittest discover -s tests
 ```
 
-测试覆盖 `cortex-index/scripts/server.py` 的核心路径：启动、HTML 渲染、`__REVIEW_DATA__` 占位符注入、`/save` 端点、`/shutdown` 端点、临时文件清理。零外部依赖，仅使用标准库。
+测试覆盖 `memo-index/scripts/server.py` 的核心路径：启动、HTML 渲染、`__REVIEW_DATA__` 占位符注入、`/save` 端点、`/shutdown` 端点、临时文件清理。零外部依赖，仅使用标准库。
 
 ## 许可证
 

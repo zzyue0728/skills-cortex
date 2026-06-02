@@ -1,4 +1,4 @@
-"""Tests for cortex-index/scripts/server.py."""
+"""Tests for memo-index/scripts/server.py."""
 import contextlib
 import json
 import shutil
@@ -11,7 +11,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-SERVER_SCRIPT = Path(__file__).parent.parent / 'cortex-index' / 'scripts' / 'server.py'
+SERVER_SCRIPT = Path(__file__).parent.parent / 'memo-index' / 'scripts' / 'server.py'
 
 
 @contextlib.contextmanager
@@ -51,7 +51,7 @@ def running_server(workdir):
 
 class ServerTestCase(unittest.TestCase):
     def setUp(self):
-        self.workdir = Path(tempfile.mkdtemp(prefix='cortex_test_'))
+        self.workdir = Path(tempfile.mkdtemp(prefix='memo_test_'))
 
     def tearDown(self):
         shutil.rmtree(self.workdir, ignore_errors=True)

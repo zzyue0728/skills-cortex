@@ -1,42 +1,42 @@
 ---
-name: cortex-memory
-description: 加载 .cortex/_index.md 中所有 status=active 的快照文件以及 CORTEX.md 到当前上下文，让 AI 全面了解项目历史
+name: memo-memory
+description: 加载 .memo/_index.md 中所有 status=active 的快照文件以及 MEMO.md 到当前上下文，让 AI 全面了解项目历史
 ---
 
-# cortex-memory — 加载上下文
+# memo-memory — 加载上下文
 
-加载 `.cortex/_index.md` 中所有 status=active 的快照文件，以及 CORTEX.md 的全部内容（用户规则、设计意图、已否决方案、已知坑位、方向约束、文档索引表），全部注入当前上下文，让 AI 自主按需使用。
+加载 `.memo/_index.md` 中所有 status=active 的快照文件，以及 MEMO.md 的全部内容（用户规则、设计意图、已否决方案、已知坑位、方向约束、文档索引表），全部注入当前上下文，让 AI 自主按需使用。
 
 **无需用户选择，全量加载。**
 
 ## 触发条件
 
-- 用户直接输入 `cortex-memory`
-- 主技能 `cortex -m` 分发调用
+- 用户直接输入 `memo-memory`
+- 主技能 `memo -m` 分发调用
 
 ## 执行流程
 
 ### 第一步：读取 _index.md
 
-读取 `.cortex/_index.md`，过滤 status=active 的所有条目。
+读取 `.memo/_index.md`，过滤 status=active 的所有条目。
 
 如果 _index.md 不存在或无 active 条目，输出：
 ```
 ❌ 未找到 active 的快照
-请先使用 cortex-context 保存快照。
+请先使用 memo-context 保存快照。
 ```
 
 ### 第二步：加载快照文件
 
 遍历所有 active 条目：
-1. 读取对应的 `.cortex/YYYY-MM-DD_HH-MM.md` 快照文件
+1. 读取对应的 `.memo/YYYY-MM-DD_HH-MM.md` 快照文件
 2. 检查快照格式：如果章节结构包含 `### 设计意图` / `### 已否决方案` / `### 已知坑位` / `### 当前断点` / `### 方向约束` 这 5 个标题，按 5 维度解析；否则作为纯文本注入，不解析维度
 
 如果某个快照文件不存在，跳过并记录为警告。
 
-### 第三步：加载 CORTEX.md
+### 第三步：加载 MEMO.md
 
-读取项目根目录的 CORTEX.md：
+读取项目根目录的 MEMO.md：
 
 - 用户规则区域
 - 设计意图区域
@@ -45,9 +45,9 @@ description: 加载 .cortex/_index.md 中所有 status=active 的快照文件以
 - 方向约束区域
 - 文档索引表
 
-如果 CORTEX.md 不存在，输出提示：
+如果 MEMO.md 不存在，输出提示：
 ```
-⚠️ 未找到 CORTEX.md，跳过加载
+⚠️ 未找到 MEMO.md，跳过加载
 ```
 
 ### 第四步：全部注入上下文
@@ -55,7 +55,7 @@ description: 加载 .cortex/_index.md 中所有 status=active 的快照文件以
 将以下信息全部加载到当前上下文：
 
 - 所有快照的 5 维度内容
-- CORTEX.md 全部内容（用户规则、已否决方案、方向约束、文档索引表等）
+- MEMO.md 全部内容（用户规则、已否决方案、方向约束、文档索引表等）
 
 ### 第五步：输出摘要
 
@@ -72,7 +72,7 @@ description: 加载 .cortex/_index.md 中所有 status=active 的快照文件以
 📍 当前断点：[最近快照的信息]
 🧭 方向约束（共 X 条）
 
-📚 CORTEX.md：已加载（用户规则、设计意图、已否决方案、已知坑位、方向约束 + X 个文档索引）
+📚 MEMO.md：已加载（用户规则、设计意图、已否决方案、已知坑位、方向约束 + X 个文档索引）
 ```
 
 > 每个维度如果条目过多，仅展示摘要和总数。
@@ -82,11 +82,11 @@ description: 加载 .cortex/_index.md 中所有 status=active 的快照文件以
 
 ```
 💡 docs/ 目录下的文档可在需要时按路径读取。
-已加载的 CORTEX.md 文档索引表可供参考。
+已加载的 MEMO.md 文档索引表可供参考。
 ```
 
 ## 注意事项
 
 - 只读取文件，不修改任何文件
 - 只加载 status=active 的条目，跳过 status=archived 和 status=compressed
-- 每条快照和 CORTEX.md 的内容会全部注入上下文，AI 自主决定如何使用
+- 每条快照和 MEMO.md 的内容会全部注入上下文，AI 自主决定如何使用

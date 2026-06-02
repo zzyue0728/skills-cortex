@@ -1,5 +1,5 @@
 # 运行时快照目录（每个用户本地生成，不提交）
-.cortex/
+.memo/
 
 # Python 缓存
 __pycache__/

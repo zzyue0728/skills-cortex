@@ -1,27 +1,27 @@
 ---
-name: cortex-index
-description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比去重后生成审查页面，用户确认后压缩快照，原快照标记为 compressed
+name: memo-index
+description: 读取 .memo/ 下所有 active 快照，按 5 维度交叉对比去重后生成审查页面，用户确认后压缩快照，原快照标记为 compressed
 ---
 
-# cortex-index — 压缩整理
+# memo-index — 压缩整理
 
-读取 `.cortex/` 下所有 status=active 的快照内容，按 5 维度交叉对比去重，生成审查 HTML 页面供用户逐条确认（删除/全局），确认后生成压缩快照并更新索引。
+读取 `.memo/` 下所有 status=active 的快照内容，按 5 维度交叉对比去重，生成审查 HTML 页面供用户逐条确认（删除/全局），确认后生成压缩快照并更新索引。
 
 ## 触发条件
 
-- 用户直接输入 `cortex-index`
-- 主技能 `cortex -i` 分发调用
+- 用户直接输入 `memo-index`
+- 主技能 `memo -i` 分发调用
 
 ## 执行流程
 
 ### 第一步：读取所有 active 快照
 
-读取 `.cortex/_index.md`，获取所有 status=active 的条目。
+读取 `.memo/_index.md`，获取所有 status=active 的条目。
 
 如果 _index.md 不存在或无 active 条目，输出：
 ```
 ❌ 未找到 active 的快照
-请先使用 cortex -c 保存快照。
+请先使用 memo -c 保存快照。
 ```
 并结束流程。
 
@@ -52,7 +52,7 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 
 ### 第三步：生成审查数据
 
-1. 将对比结果按以下结构写入 `.cortex/collate/review_data.json`：
+1. 将对比结果按以下结构写入 `.memo/collate/review_data.json`：
 ```json
 {
   "source_files": ["<来源快照1>", "<来源快照2>"],
@@ -67,21 +67,21 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 ```
 每条记录的默认状态均为 `deleted: false, global: false`。
 
-2. 读取当前 SKILL.md 同级目录下的 `scripts/review.html`（即 `./scripts/review.html`，相对于本技能文件所在目录），将 `__REVIEW_DATA__` 替换为 review_data.json 的完整 JSON 字符串，生成 `.cortex/collate/review.html`。
+2. 读取当前 SKILL.md 同级目录下的 `scripts/review.html`（即 `./scripts/review.html`，相对于本技能文件所在目录），将 `__REVIEW_DATA__` 替换为 review_data.json 的完整 JSON 字符串，生成 `.memo/collate/review.html`。
 
 ### 第四步：启动审查
 
 所有命令使用 bash 语法，兼容 Windows Git Bash / Linux / macOS。
 
-0. 确保 `.cortex/collate/server.py` 已就位。初始化阶段（`cortex` 无参数）已自动拷贝，但若跳过初始化直接跑 `cortex -i`，需手动补上：
+0. 确保 `.memo/collate/server.py` 已就位。初始化阶段（`memo` 无参数）已自动拷贝，但若跳过初始化直接跑 `memo -i`，需手动补上：
    ```bash
-   test -f .cortex/collate/server.py || cp ../cortex-index/scripts/server.py .cortex/collate/server.py
+   test -f .memo/collate/server.py || cp ../memo-index/scripts/server.py .memo/collate/server.py
    ```
-   > 路径使用兄弟目录约定（`../cortex-index/scripts/`），假设当前在项目根目录。
+   > 路径使用兄弟目录约定（`../memo-index/scripts/`），假设当前在项目根目录。
 
-1. 在 `.cortex/collate/` 目录后台启动 server.py：
+1. 在 `.memo/collate/` 目录后台启动 server.py：
    ```bash
-   cd .cortex/collate && python server.py . &
+   cd .memo/collate && python server.py . &
    ```
    服务器默认监听 `127.0.0.1:18888`，端口被占用时自动递增（最多尝试 100 个），实际 URL 输出到终端。
 
@@ -97,7 +97,7 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 
 在页面中逐条操作：
   [删除/恢复] 切换 → 从快照中移除或保留
-  [全局/局部] 切换 → 全局则移入 CORTEX.md，局部则保留在快照
+  [全局/局部] 切换 → 全局则移入 MEMO.md，局部则保留在快照
 完成后点击 [确认保存]，回到这里告诉我"好了"。
 ```
 
@@ -112,24 +112,24 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
   ```
   如果 curl 不可用，通过 PID 文件结束：
   ```bash
-  kill $(cat .cortex/collate/server.pid) 2>/dev/null
+  kill $(cat .memo/collate/server.pid) 2>/dev/null
   ```
 
 ### 第六步：处理审查结果
 
-1. 读取 `.cortex/collate/save_result.json`
+1. 读取 `.memo/collate/save_result.json`
 2. 按每条记录的标记处理：
 
 | 标记 | 操作 |
 |------|------|
 | `deleted: true` | 从压缩快照中移除 |
 | `deleted: false, global: false` | 保留在压缩快照中 |
-| `deleted: false, global: true` | 写入 CORTEX.md 对应区块，快照中移除 |
+| `deleted: false, global: true` | 写入 MEMO.md 对应区块，快照中移除 |
 | `deleted: true, global: any` | 直接移除（删除优先） |
 
-**全局条目 → CORTEX.md 映射：**
+**全局条目 → MEMO.md 映射：**
 
-| 维度 | CORTEX.md 区块 |
+| 维度 | MEMO.md 区块 |
 |------|---------------|
 | 设计意图 | `## 设计意图`（不存在则创建） |
 | 已否决方案 | `## 已否决方案`（不存在则创建） |
@@ -137,13 +137,13 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 | 当前断点 | 不适用（该维度无全局选项） |
 | 方向约束 | `## 方向约束`（不存在则创建） |
 
-写入 CORTEX.md 时做语义去重，避免重复。
+写入 MEMO.md 时做语义去重，避免重复。
 
 ### 第七步：写入压缩快照与更新索引
 
-1. 检查保留在快照中的条目数：如果全部条目均被删除或移入 CORTEX.md（保留条目为 0），跳过写入新快照文件，仅更新索引（将原 active 条目改为 compressed，不追加新条目）。
-2. 如果有保留条目，按 5 维度格式写入新快照文件 `.cortex/YYYY-MM-DD_HH-MM.md`
-3. 更新 `.cortex/_index.md`：
+1. 检查保留在快照中的条目数：如果全部条目均被删除或移入 MEMO.md（保留条目为 0），跳过写入新快照文件，仅更新索引（将原 active 条目改为 compressed，不追加新条目）。
+2. 如果有保留条目，按 5 维度格式写入新快照文件 `.memo/YYYY-MM-DD_HH-MM.md`
+3. 更新 `.memo/_index.md`：
    - 如写入了新快照，追加新条目：`<文件名> | <取来源中最宽泛的层级> | 压缩 | 压缩合并 X 条快照 | active`
    - 将原 active 条目的 status 改为 `compressed`
 
@@ -152,9 +152,9 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 1. 停止 server.py 进程（如果仍在运行，比如用户点击了取消但未手动停止）：
    ```bash
    curl -s -X POST http://127.0.0.1:18888/shutdown 2>/dev/null || \
-     kill $(cat .cortex/collate/server.pid) 2>/dev/null || true
+     kill $(cat .memo/collate/server.pid) 2>/dev/null || true
    ```
-2. 删除 `.cortex/collate/` 下的临时文件，仅保留 `server.py`：
+2. 删除 `.memo/collate/` 下的临时文件，仅保留 `server.py`：
    - 删除 `review.html`
    - 删除 `review_data.json`
    - 删除 `save_result.json`（如果存在）
@@ -166,7 +166,7 @@ description: 读取 .cortex/ 下所有 active 快照，按 5 维度交叉对比�
 ```
 ✅ 压缩整理完成
 
-新快照：.cortex/YYYY-MM-DD_HH-MM.md（压缩合并 X 条快照，保留 Y 条条目）
-已移入 CORTEX.md：Z 条全局条目
+新快照：.memo/YYYY-MM-DD_HH-MM.md（压缩合并 X 条快照，保留 Y 条条目）
+已移入 MEMO.md：Z 条全局条目
 旧快照状态：compressed（X 条）
 ```

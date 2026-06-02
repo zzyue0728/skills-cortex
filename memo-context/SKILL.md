@@ -1,16 +1,16 @@
 ---
-name: cortex-context
-description: 从当前对话提取 5 维度上下文信息，推断项目层级和类别，生成快照到 .cortex/ 并追加索引
+name: memo-context
+description: 从当前对话提取 5 维度上下文信息，推断项目层级和类别，生成快照到 .memo/ 并追加索引
 ---
 
-# cortex-context — 保存上下文快照
+# memo-context — 保存上下文快照
 
-将当前对话中的关键上下文信息（设计意图、已否决方案、已知坑位、当前断点、方向约束）提取为独立快照文件，追加索引到 `.cortex/_index.md`。
+将当前对话中的关键上下文信息（设计意图、已否决方案、已知坑位、当前断点、方向约束）提取为独立快照文件，追加索引到 `.memo/_index.md`。
 
 ## 触发条件
 
-- 用户直接输入 `cortex-context`
-- 主技能 `cortex -c` 分发调用
+- 用户直接输入 `memo-context`
+- 主技能 `memo -c` 分发调用
 
 ## 快照设计哲学
 
@@ -75,7 +75,7 @@ description: 从当前对话提取 5 维度上下文信息，推断项目层级�
 
 1. 必须通过系统命令获取当前日期时间（例如 `Get-Date -Format "yyyy-MM-dd_HH-mm"`），**禁止凭上下文信息推测或编造**。生成文件名：`YYYY-MM-DD_HH-MM.md`
 2. 如果已存在同名文件，追加序号：`YYYY-MM-DD_HH-MM_2.md`
-3. 写入 `.cortex/` 目录
+3. 写入 `.memo/` 目录
 
 快照文件格式：
 
@@ -102,7 +102,7 @@ description: 从当前对话提取 5 维度上下文信息，推断项目层级�
 
 ### 第四步：追加索引
 
-读取 `.cortex/_index.md`，追加一条新条目（status=active）：
+读取 `.memo/_index.md`，追加一条新条目（status=active）：
 
 _index.md 格式：
 
@@ -119,7 +119,7 @@ _index.md 格式：
 ### 第五步：输出摘要
 
 ```
-✅ 快照已保存到 .cortex/YYYY-MM-DD_HH-MM.md
+✅ 快照已保存到 .memo/YYYY-MM-DD_HH-MM.md
 
 变更摘要：
 - 项目层级：[层级]
@@ -134,4 +134,4 @@ _index.md 格式：
 ## 注意事项
 
 - **不做合并**：每一条快照都是独立的上下文信息，不读取旧快照
-- 快照文件物理保留不删除，索引的压缩整理由 cortex-index 负责
+- 快照文件物理保留不删除，索引的压缩整理由 memo-index 负责
