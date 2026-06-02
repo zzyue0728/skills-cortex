@@ -67,7 +67,11 @@ description: 读取 .memo/ 下所有 active 快照，按 5 维度交叉对比去
 ```
 每条记录的默认状态均为 `deleted: false, global: false`。
 
-2. 读取当前 SKILL.md 同级目录下的 `scripts/review.html`（即 `./scripts/review.html`，相对于本技能文件所在目录），将 `__REVIEW_DATA__` 替换为 review_data.json 的完整 JSON 字符串，生成 `.memo/collate/review.html`。
+2. 拷贝模板文件到输出目录（保留 `__REVIEW_DATA__` 占位符，不做文本替换）：
+   ```bash
+   cp ../memo-index/scripts/review.html .memo/collate/review.html
+   ```
+   `server.py` 的 `do_GET` 会在 serve 时从 `review_data.json` 读取数据，动态注入到占位符位置（Python 端读写 UTF-8 编码正确，无乱码问题）。
 
 ### 第四步：启动审查
 
