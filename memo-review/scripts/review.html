@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>快照压缩审查</title>
+<title>快照审查与压缩</title>
 <style>
 :root {
   --bg: #f5f5f5;
@@ -30,15 +30,25 @@ body {
 
 .header {
   background: var(--card);
-  padding: 20px 24px;
+  padding: 14px 24px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
   box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
 }
-.header h1 { font-size: 18px; margin-bottom: 4px; }
+.header-left { grid-column: 1; }
+.header h1 { font-size: 18px; }
 .header .meta { font-size: 13px; color: var(--muted); }
+.filter-bar {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
 
 .container {
   max-width: 900px;
@@ -192,13 +202,65 @@ body {
 .btn-secondary:hover { background: #ddd; }
 
 .dim-summary { padding: 8px 16px; font-size: 12px; color: var(--muted); }
+
+/* AI 建议区域 */
+.ai-suggestion {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+.ai-suggestion strong { color: #555; }
+.ai-suggestion .ai-reason { color: #aaa; }
+
+/* MEMO.md 来源标记 */
+.badge-memo {
+  font-size: 10px;
+  background: #6c757d;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* 来源筛选栏 */
+.btn-filter {
+  padding: 6px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-filter:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: #eef3fc;
+}
+.btn-filter.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>📋 快照压缩审查</h1>
-  <div class="meta" id="meta-info"></div>
+  <div class="header-left">
+    <h1>📋 快照审查与压缩</h1>
+    <div class="meta" id="meta-info"></div>
+  </div>
+  <div class="filter-bar">
+    <button class="btn-filter" data-filter="all" onclick="setFilter('all')">全部</button>
+    <button class="btn-filter active" data-filter="snapshot" onclick="setFilter('snapshot')">快照条目</button>
+    <button class="btn-filter" data-filter="memo" onclick="setFilter('memo')">MEMO.md 条目</button>
+  </div>
 </div>
 
 <div class="container" id="sections"></div>
@@ -226,15 +288,70 @@ const data = JSON.parse(document.getElementById('review-data').textContent);
 const dimIcons = { '设计意图': '🧭', '已否决方案': '🚫', '已知坑位': '⚠️', '当前断点': '📍', '方向约束': '🧱' };
 const dimHasGlobal = { '设计意图': true, '已否决方案': true, '已知坑位': true, '当前断点': false, '方向约束': true };
 
+// source 判断辅助函数
+function isMemoItem(item) { return item.source === 'memo'; }
+function isSnapshotItem(item) { return !item.source || item.source === 'snapshot'; }
+
+// 初始化：每条条目的 deleted/global 默认状态跟随 AI 建议
+for (const dim of Object.keys(data.dimensions)) {
+  for (const item of (data.dimensions[dim] || [])) {
+    item.source = item.source || 'snapshot';
+    const sug = item.suggestion || '';
+    if (sug === '删除') {
+      item.deleted = true;
+      item.global = false;
+    } else if (sug === '提全局') {
+      item.deleted = false;
+      item.global = true;
+    } else {
+      item.deleted = false;
+      item.global = false;
+    }
+  }
+}
+
 document.getElementById('meta-info').textContent =
-  '来源：' + data.source_files.length + ' 条快照';
+  '来源：' + data.source_files.length + ' 条快照 + MEMO.md 全局条目';
+
+// 来源筛选状态 ('all', 'snapshot', 'memo')
+let currentFilter = 'snapshot';
+
+function getFilteredItems(dim) {
+  const all = data.dimensions[dim] || [];
+  if (currentFilter === 'all') return all;
+  return all.filter(i => i.source === currentFilter);
+}
+
+function setFilter(filter) {
+  if (currentFilter === filter) return;
+  currentFilter = filter;
+  document.querySelectorAll('.btn-filter').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  // 记住所有维度的折叠状态，重新渲染后恢复
+  const collapsed = {};
+  for (const dim of Object.keys(data.dimensions)) {
+    const el = document.getElementById('dim-' + dim);
+    if (el) collapsed[dim] = el.parentElement.parentElement.classList.contains('collapsed');
+  }
+  render();
+  for (const [dim, was] of Object.entries(collapsed)) {
+    if (was) {
+      const newEl = document.getElementById('dim-' + dim);
+      if (newEl) newEl.parentElement.parentElement.classList.add('collapsed');
+    }
+  }
+}
 
 function render() {
   const container = document.getElementById('sections');
   container.innerHTML = '';
 
-  for (const [dim, items] of Object.entries(data.dimensions)) {
-    if (!items || items.length === 0) continue;
+  for (const [dim, allItems] of Object.entries(data.dimensions)) {
+    if (!allItems || allItems.length === 0) continue;
+    const items = getFilteredItems(dim);
+    if (items.length === 0) continue;
+
     const activeItems = items.filter(i => !i.deleted);
     const globalItems = items.filter(i => i.global && !i.deleted);
 
@@ -247,7 +364,7 @@ function render() {
         <span class="count">${activeItems.length} / ${items.length} 条</span>
         <span class="arrow">▼</span>
       </div>
-      <div class="dim-summary">${dimHasGlobal[dim] ? '已标记全局 ' + globalItems.length + ' 条 | ' : ''}已删除 ${items.filter(i => i.deleted).length} 条</div>
+      <div class="dim-summary">${dimHasGlobal[dim] ? '已标记全局 ' + globalItems.length + ' 条 | ' : ''}已删除 ${items.filter(i => i.deleted).length} 条 | MEMO.md ${items.filter(i => isMemoItem(i)).length} 条</div>
       <div class="section-body" id="dim-${dim}"></div>
     `;
     container.appendChild(section);
@@ -259,11 +376,15 @@ function render() {
       if (item.deleted) row.classList.add('deleted');
       if (item.global && !item.deleted) row.classList.add('global');
 
+      // MEMO.md 来源条目不支持全局切换
+      const showGlobBtn = dimHasGlobal[dim] && isSnapshotItem(item);
+      const memoBadge = isMemoItem(item) ? '<span class="badge-memo">MEMO.md</span>' : '';
+
       row.innerHTML = `
-        <span class="item-text">${escapeHtml(item.text)}<span class="badge-global">全局</span></span>
+        <span class="item-text">${escapeHtml(item.text)}<span class="badge-global">全局</span>${memoBadge}<span class="ai-suggestion">AI 建议：<strong>${escapeHtml(item.suggestion || '无')}</strong> <span class="ai-reason">| ${escapeHtml(item.reason || '')}</span></span></span>
         <div class="item-actions">
           <button class="btn btn-del ${item.deleted ? 'active' : ''}" data-action="del">${item.deleted ? '恢复' : '删除'}</button>
-          <button class="btn btn-glob ${item.global ? 'active' : ''} ${!dimHasGlobal[dim] || item.deleted ? 'disabled' : ''}" data-action="glob">${item.global ? '局部' : '全局'}</button>
+          ${showGlobBtn ? `<button class="btn btn-glob ${item.global ? 'active' : ''} ${item.deleted ? 'disabled' : ''}" data-action="glob">${item.global ? '回快照' : '提全局'}</button>` : ''}
         </div>
       `;
 
@@ -275,7 +396,7 @@ function render() {
       });
 
       const globBtn = row.querySelector('[data-action="glob"]');
-      if (dimHasGlobal[dim]) {
+      if (globBtn) {
         globBtn.addEventListener('click', () => {
           item.global = !item.global;
           rerenderSection(dim);
@@ -307,7 +428,13 @@ function collect() {
   const result = { dimensions: {} };
   for (const dim of Object.keys(data.dimensions)) {
     result.dimensions[dim] = data.dimensions[dim].map(i => ({
-      id: i.id, text: i.text, deleted: i.deleted, global: i.global
+      id: i.id,
+      text: i.text,
+      deleted: i.deleted,
+      global: i.global,
+      source: i.source || 'snapshot',
+      suggestion: i.suggestion || '',
+      reason: i.reason || ''
     }));
   }
   return result;

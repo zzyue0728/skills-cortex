@@ -1,0 +1,240 @@
+{
+  "source_files": ["2026-05-10_14-30.md", "2026-05-15_09-20.md", "2026-05-28_16-45.md"],
+  "dimensions": {
+    "设计意图": [
+      {
+        "id": 1,
+        "text": "使用 Python 标准库 http.server 实现审查服务器，零外部依赖",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "保留",
+        "reason": "当前 server.py 仍使用标准库 http.server，与项目状态一致"
+      },
+      {
+        "id": 2,
+        "text": "快照文件采用 Markdown 格式，人工可直接阅读",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "提全局",
+        "reason": "属于长期架构决策，适合沉淀到 MEMO.md"
+      },
+      {
+        "id": 3,
+        "text": "最初使用 JSON 格式存储快照，因可读性差改为 Markdown",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "删除",
+        "reason": "历史过渡方案，当前已无 JSON 快照痕迹，无需保留"
+      },
+      {
+        "id": 4,
+        "text": "审查页面使用纯前端实现，不引入 Vue/React 框架",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "保留",
+        "reason": "review.html 目前仍是纯 HTML/CSS/JS，该决策仍有效"
+      },
+      {
+        "id": 5,
+        "text": "memo 技能体系应该拆分为独立子技能，松耦合",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "保留",
+        "reason": "当前架构仍是 5 个独立子技能目录，拆分决策有效"
+      },
+      {
+        "id": 6,
+        "text": "测试需要覆盖 server.py 的所有 HTTP 端点",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "删除",
+        "reason": "该测试目标已在 test_server.py 中全部实现，条目本身不再提供新信息"
+      },
+      {
+        "id": 7,
+        "text": "计划后续支持 WebSocket 实时推送审查结果",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "待核实",
+        "reason": "参考源中未找到 WebSocket 相关代码或讨论，无法判断该计划是否仍在进行"
+      }
+    ],
+    "已否决方案": [
+      {
+        "id": 8,
+        "text": "使用 Flask 框架实现审查服务器 — 拒绝原因：引入第三方依赖违背零依赖原则",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "提全局",
+        "reason": "零依赖是项目核心原则，该否决理由长期有效"
+      },
+      {
+        "id": 9,
+        "text": "使用 SQLite 存储快照元数据 — 拒绝原因：增加复杂度，Markdown 文件 + _index.md 已够用",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "保留",
+        "reason": "当前仍使用 _index.md 管理索引，否决 SQLite 的决定仍有效"
+      },
+      {
+        "id": 10,
+        "text": "将 server.py 改用异步框架（aiohttp）— 拒绝原因：端口递增逻辑与异步框架兼容性差",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "待核实",
+        "reason": "项目近期合并了 -i 和 -s，如有性能问题可能需要重新评估"
+      },
+      {
+        "id": 11,
+        "text": "审查页面使用 Canvas 画布展示数据关系图 — 拒绝原因：增加实现复杂度，表格形式已满足需求",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "保留",
+        "reason": "review.html 仍为纯 DOM 实现，未引入 Canvas，否决仍有效"
+      },
+      {
+        "id": 12,
+        "text": "快照存储使用 YAML 替代 Markdown — 拒绝原因：YAML 缩进敏感，容易格式错误",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "删除",
+        "reason": "YAML 相关讨论已过时，项目已稳定使用 Markdown 多年，该否决无提醒价值"
+      }
+    ],
+    "已知坑位": [
+      {
+        "id": 13,
+        "text": "Windows PowerShell 控制台 GBK 编码导致 Python print 中文输出乱码 — 解决方法：用 UTF-8 字节级写入文件绕过",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "保留",
+        "reason": "Windows 环境下此问题仍存在，需要继续提醒"
+      },
+      {
+        "id": 14,
+        "text": "server.py 端口被占用时需自动递增，最多尝试 100 个端口 — 解决方法：在 18888~18987 范围内遍历 bind",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "提全局",
+        "reason": "端口管理逻辑属于长期有效的架构知识点，应写入 MEMO.md"
+      },
+      {
+        "id": 15,
+        "text": "review.html 的 rerenderSection 在折叠状态下丢 collapse 状态 — 解决方法：渲染前记录 collapsed，渲染后恢复",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "保留",
+        "reason": "此 UI 状态的坑位代码仍在 review.html 中，未来修改渲染逻辑时仍需注意"
+      },
+      {
+        "id": 16,
+        "text": "save_result.json 写入时 JSON 字段缺失导致 KeyError — 解决方法：所有字段加默认值兜底",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "保留",
+        "reason": "涉及数据完整性，属于需要长期注意的坑位"
+      },
+      {
+        "id": 17,
+        "text": "早期版本 review.html 中 innerHTML 拼接导致 XSS 漏洞 — 解决方法：引入 escapeHtml 函数对用户输入转义",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "删除",
+        "reason": "escapeHtml 已稳定运行多版本，XSS 已从根源修复，该坑位不再有复现可能"
+      }
+    ],
+    "当前断点": [
+      {
+        "id": 18,
+        "text": "已完成：-i 和 -s 合并为 -r (memo-review)\n已完成：review.html 新增 AI 建议显示和 MEMO.md 来源标记\n已完成：所有文档中旧引用 memo-index/memo-snapshot 已清理",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "保留",
+        "reason": "这是最新的工作状态"
+      },
+      {
+        "id": 19,
+        "text": "待验证：审查页面实际运行效果（当前正在测试中）\n待验证：中文不乱码确认",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "待核实",
+        "reason": "参考源中未找到验证完成记录"
+      }
+    ],
+    "方向约束": [
+      {
+        "id": 20,
+        "text": "禁止引入任何第三方 Python 包，server.py 只能使用标准库",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "提全局",
+        "reason": "属于项目核心原则，应沉淀到 MEMO.md"
+      },
+      {
+        "id": 21,
+        "text": "所有用户可见的提示信息必须使用中文",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "保留",
+        "reason": "项目定位中文用户，约束仍适用"
+      },
+      {
+        "id": 22,
+        "text": "快照文件和 MEMO.md 均使用 Markdown 格式，不引入其他标记语言",
+        "deleted": false,
+        "global": false,
+        "source": "snapshot",
+        "suggestion": "待核实",
+        "reason": "参考源中未讨论过其他标记语言，该约束可能是默认行为而非明确约定"
+      },
+      {
+        "id": 23,
+        "text": "测试只使用 unittest 标准库，不引入 pytest",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "保留",
+        "reason": "test_server.py 当前仍使用 unittest，约束有效"
+      },
+      {
+        "id": 24,
+        "text": "所有技能 SKILL.md 必须互为兄弟目录，路径引用使用 ../ 相对路径",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "保留",
+        "reason": "当前所有路径引用仍遵循该约定"
+      },
+      {
+        "id": 25,
+        "text": "禁止在 SKILL.md 中使用 emoji（除非用户明确要求）",
+        "deleted": false,
+        "global": false,
+        "source": "memo",
+        "suggestion": "删除",
+        "reason": "该约束来自用户个人偏好而非项目规范，不应出现在项目级别的方向约束中"
+      }
+    ]
+  }
+}

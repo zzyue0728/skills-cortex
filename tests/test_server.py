@@ -1,4 +1,4 @@
-"""Tests for memo-index/scripts/server.py."""
+"""Tests for memo-review/scripts/server.py."""
 import contextlib
 import json
 import shutil
@@ -11,7 +11,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-SERVER_SCRIPT = Path(__file__).parent.parent / 'memo-index' / 'scripts' / 'server.py'
+SERVER_SCRIPT = Path(__file__).parent.parent / 'memo-review' / 'scripts' / 'server.py'
 
 
 @contextlib.contextmanager
